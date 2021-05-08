@@ -1,8 +1,9 @@
-[![GoDoc](https://godoc.org/github.com/tarm/serial?status.svg)](http://godoc.org/github.com/tarm/serial)
-[![Build Status](https://travis-ci.org/tarm/serial.svg?branch=master)](https://travis-ci.org/tarm/serial)
+[![GoDoc](https://godoc.org/github.com/shayden/serial?status.svg)](http://godoc.org/github.com/shayden/serial)
 
 Serial
 ========
+Forked from github.com/tarm/serial
+
 A Go package to allow you to read and write from the
 serial port as a stream of bytes.
 
@@ -13,7 +14,7 @@ an added bonus, the windows package does not use cgo, so you can cross
 compile for windows from another platform.
 
 You can cross compile with
-   GOOS=windows GOARCH=386 go install github.com/tarm/serial
+   GOOS=windows GOARCH=386 go install github.com/shayden/serial
 
 Currently there is very little in the way of configurability.  You can
 set the baud rate.  Then you can Read(), Write(), or Close() the
@@ -36,7 +37,7 @@ package main
 import (
         "log"
 
-        "github.com/tarm/serial"
+        "github.com/shayden/serial"
 )
 
 func main() {
