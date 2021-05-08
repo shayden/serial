@@ -88,7 +88,7 @@ func openPort(name string, baud int, databits byte, parity Parity, stopbits Stop
 		uintptr(unix.TIOCMBIS), // set/raise DTR pin
 		uintptr(unsafe.Pointer(&dtrFlag)))
 
-	if _, _, errno := unix.Syscall6(
+	if _, _, errno := unix.Syscall(
 		unix.SYS_IOCTL,
 		uintptr(fd),
 		uintptr(unix.TCSETS2),
