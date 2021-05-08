@@ -132,7 +132,7 @@ func (p *Port) Read(buf []byte) (int, error) {
 	return getOverlappedResult(p.fd, p.ro)
 }
 
-// Discards data written to the port but not transmitted,
+// Flush discards data written to the port but not transmitted,
 // or data received but not read
 func (p *Port) Flush() error {
 	return purgeComm(p.fd)
@@ -150,7 +150,8 @@ func (p *Port) SendBreak(d time.Duration) error {
 	return sendCommBreak(p.fd, d)
 }
 
-// Retrieves information about a communications error and reports the current status of a communications device.
+//ClearCommErrror retrieves information about a communications error and reports the current status
+// of a communications device.
 // The function is called when a communications error occurs,
 // and it clears the device's error flag to enable additional input and output (I/O) operations.
 func (p *Port) ClearCommError(errors *uint32, commStat *CommStat) error {

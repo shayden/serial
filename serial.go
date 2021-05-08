@@ -1,5 +1,5 @@
 /*
-Goserial is a simple go package to allow you to read and write from
+Package serial is a simple go package to allow you to read and write from
 the serial port as a stream of bytes.
 
 It aims to have the same API on all platforms, including windows.  As
@@ -60,7 +60,8 @@ import (
 	"time"
 )
 
-const DefaultSize = 8 // Default value for Config.Size
+// DefaultSize is the default value for Config.Size
+const DefaultSize = 8
 
 type StopBits byte
 type Parity byte
