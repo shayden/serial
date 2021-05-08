@@ -20,6 +20,11 @@ type Port struct {
 	wo *syscall.Overlapped
 }
 
+// CommStat contains information about a communications device. CommStat is filled by the ClearCommError function.
+type CommStat struct {
+	Flags, InQue, OutQue uint32
+}
+
 type structDCB struct {
 	DCBlength, BaudRate                            uint32
 	flags                                          [4]byte
@@ -139,10 +144,17 @@ func (p *Port) Flush() error {
 // To be compatible to linux and unix behavior we use 0.25 seconds
 // as duration if a duration of zero is given.
 func (p *Port) SendBreak(d time.Duration) error {
-    if d.Milliseconds() == 0 {
-        d = 250 * time.Millisecond
-    }
-    return sendCommBread(p.fd, d)
+	if d.Milliseconds() == 0 {
+		d = 250 * time.Millisecond
+	}
+	return sendCommBreak(p.fd, d)
+}
+
+// Retrieves information about a communications error and reports the current status of a communications device.
+// The function is called when a communications error occurs,
+// and it clears the device's error flag to enable additional input and output (I/O) operations.
+func (p *Port) ClearCommError(errors *uint32, commStat *CommStat) error {
+	return clearCommError(p.fd, errors, commStat)
 }
 
 var (
@@ -154,9 +166,10 @@ var (
 	nCreateEvent,
 	nResetEvent,
 	nPurgeComm,
-    nSetCommBreak,
-    nClearCommBreak,
-	nFlushFileBuffers uintptr
+	nSetCommBreak,
+	nClearCommBreak,
+	nFlushFileBuffers,
+	nClearCommError uintptr
 )
 
 func init() {
@@ -174,9 +187,10 @@ func init() {
 	nCreateEvent = getProcAddr(k32, "CreateEventW")
 	nResetEvent = getProcAddr(k32, "ResetEvent")
 	nPurgeComm = getProcAddr(k32, "PurgeComm")
-    nSetCommBreak = getProcAddr(k32, "SetCommBreak")
-    nClearCommBreak = getProcAddr(k32, "ClearCommBreak")
+	nSetCommBreak = getProcAddr(k32, "SetCommBreak")
+	nClearCommBreak = getProcAddr(k32, "ClearCommBreak")
 	nFlushFileBuffers = getProcAddr(k32, "FlushFileBuffers")
+	nClearCommError = getProcAddr(k32, "ClearCommError")
 }
 
 func getProcAddr(lib syscall.Handle, name string) uintptr {
@@ -319,17 +333,17 @@ func purgeComm(h syscall.Handle) error {
 	return nil
 }
 
-func sendCommBreak(h syscall.Hande, d time.duration) error {
-    r, _, err := syscall.Syscall(nSetCommBreak, 1, uintptr(h), 0, 0)
-    if r == 0 {
-        return err
-    }
-    time.Sleep(d)
-    r, _, err = syscall.Syscall(nClearCommBreak, 1, uintptr(h), 0, 0)
-    if r == 0 {
-        return err
-    }
-    return nil
+func sendCommBreak(h syscall.Handle, d time.Duration) error {
+	r, _, err := syscall.Syscall(nSetCommBreak, 1, uintptr(h), 0, 0)
+	if r == 0 {
+		return err
+	}
+	time.Sleep(d)
+	r, _, err = syscall.Syscall(nClearCommBreak, 1, uintptr(h), 0, 0)
+	if r == 0 {
+		return err
+	}
+	return nil
 }
 
 func newOverlapped() (*syscall.Overlapped, error) {
@@ -353,4 +367,15 @@ func getOverlappedResult(h syscall.Handle, overlapped *syscall.Overlapped) (int,
 	}
 
 	return n, nil
+}
+
+func clearCommError(h syscall.Handle, errors *uint32, commStat *CommStat) error {
+	r, _, err := syscall.Syscall6(nClearCommError, 3,
+		uintptr(h),
+		uintptr(unsafe.Pointer(errors)),
+		uintptr(unsafe.Pointer(commStat)), 0, 0, 0)
+	if r == 0 {
+		return fmt.Errorf("ClearCommError failed: %v", err)
+	}
+	return nil
 }
