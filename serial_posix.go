@@ -203,8 +203,8 @@ func (p *Port) Flush() error {
 //   than it's implementaion specific, which unit is used for duration.
 //   For more information tae a look at tcsendbreak(3) and ioctl_tty(2)
 func (p *Port) SendBreak(d time.Duration) error {
-    _, err := C.tcsendbreak(C.int(p.f.Fd()), C.int(d.Milliseconds()))
-    return err
+	_, err := C.tcsendbreak(C.int(p.f.Fd()), C.int(d.Milliseconds()))
+	return err
 }
 
 func (p *Port) Close() (err error) {
