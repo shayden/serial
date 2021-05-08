@@ -4,6 +4,7 @@ package serial
 
 import (
 	"os"
+	"syscall"
 	"time"
 	"unsafe"
 
@@ -55,6 +56,10 @@ func openPort(name string, baud int, databits byte, parity Parity, stopbits Stop
 		cflagToUse |= unix.PARODD
 	case ParityEven:
 		cflagToUse |= unix.PARENB
+	case ParityMark:
+		cflagToUse |= syscall.PARENB
+		cflagToUse |= unix.CMSPAR
+		cflagToUse |= syscall.PARODD
 	default:
 		return nil, ErrBadParity
 	}
